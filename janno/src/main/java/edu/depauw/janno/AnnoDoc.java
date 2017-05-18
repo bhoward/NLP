@@ -15,6 +15,7 @@ import edu.stanford.nlp.ie.util.RelationTriple;
 import edu.stanford.nlp.simple.Document;
 import edu.stanford.nlp.simple.Sentence;
 import edu.stanford.nlp.simple.SentenceAlgorithms;
+import edu.stanford.nlp.trees.Tree;
 
 public class AnnoDoc {
 	private PDDocument pdfDoc;
@@ -26,7 +27,7 @@ public class AnnoDoc {
 		PDFTextStripper stripper = new PDFTextStripper();
 		String text = stripper.getText(pdfDoc).replaceAll("[^\\x20-\\x7E]", "");
 		nlpDoc = new Document(text);
-// TODO uncomment this if .parse() will be needed
+
 //		new Thread(() -> {
 //			// start parsing the first sentence, because it will take a while to compute the references across the whole document
 //			App.showStatus("Parsing...");
@@ -61,10 +62,14 @@ public class AnnoDoc {
 					System.out.println(phrase);
 				}
 				System.out.println(sentence.dependencyGraph());
-				for (RelationTriple rt : sentence.openieTriples()) {
-					System.out.println(rt);
-				}
-
+//				for (RelationTriple rt : sentence.openieTriples()) {
+//					System.out.println(rt);
+//				}
+				App.showAnimatedStatus("Parsing");
+				Tree tree = sentence.parse();
+				App.stopAnimatedStatus();
+				App.showStatus("Ready");
+				System.out.println(tree);
 				working = false;
 			}).start();
 		}

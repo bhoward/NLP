@@ -21,6 +21,7 @@ import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import edu.depauw.janno.AnnoDoc;
 import edu.stanford.nlp.simple.Sentence;;
@@ -39,6 +40,8 @@ public class Window {
 
 	private AnnoDoc doc;
 	private CurrentPage cp;
+	private Thread animThread;
+	private String animSuffix;
 
 	/**
 	 * Create the application.
@@ -67,6 +70,7 @@ public class Window {
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		chooser = new JFileChooser();
+		chooser.addChoosableFileFilter(new FileNameExtensionFilter("PDF file", "pdf"));
 
 		controlPanel = new JPanel();
 		frame.getContentPane().add(controlPanel, BorderLayout.NORTH);
@@ -162,5 +166,31 @@ public class Window {
 
 	public void showStatus(String message) {
 		status.setText(message);
+	}
+	
+	public void showAnimatedStatus(String message) {
+		stopAnimatedStatus();
+		animSuffix = "";
+		animThread = new Thread(() -> {
+			while (!Thread.currentThread().isInterrupted()) {
+				if (animSuffix.length() == 10) {
+					animSuffix = "";
+				}
+				animSuffix = animSuffix + ".";
+				showStatus(message + animSuffix);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return;
+				}
+			}
+		});
+		animThread.start();
+	}
+	
+	public void stopAnimatedStatus() {
+		if (animThread != null) {
+			animThread.interrupt();
+		}
 	}
 }

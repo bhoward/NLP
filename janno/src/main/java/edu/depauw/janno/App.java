@@ -30,5 +30,21 @@ public class App {
 		}
 	}
 
+	public static void showAnimatedStatus(String message) {
+		if (window != null) {
+			EventQueue.invokeLater(() -> {
+				window.showAnimatedStatus(message);
+			});
+		}
+	}
+
+	public static void stopAnimatedStatus() {
+		if (window != null) {
+			EventQueue.invokeLater(() -> {
+				window.stopAnimatedStatus();
+			});
+		}
+	}
+
 	private static Window window;
 }
