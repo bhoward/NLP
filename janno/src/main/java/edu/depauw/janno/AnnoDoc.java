@@ -25,7 +25,9 @@ public class AnnoDoc {
 	public AnnoDoc(File in) throws IOException {
 		pdfDoc = PDDocument.load(in);
 		PDFTextStripper stripper = new PDFTextStripper();
-		String text = stripper.getText(pdfDoc).replaceAll("[^\\x20-\\x7E]", "");
+		String text = stripper.getText(pdfDoc);
+		text = text.replaceAll("-\n", "");
+		text = text.replaceAll("[^\\x20-\\x7E]", " ");
 		nlpDoc = new Document(text);
 
 //		new Thread(() -> {
