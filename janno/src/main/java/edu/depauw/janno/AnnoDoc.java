@@ -2,6 +2,8 @@ package edu.depauw.janno;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
@@ -11,11 +13,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
 import edu.depauw.janno.ui.CurrentPage;
-import edu.stanford.nlp.ie.util.RelationTriple;
 import edu.stanford.nlp.simple.Document;
 import edu.stanford.nlp.simple.Sentence;
-import edu.stanford.nlp.simple.SentenceAlgorithms;
-import edu.stanford.nlp.trees.Tree;
 
 public class AnnoDoc {
 	private PDDocument pdfDoc;
@@ -59,19 +58,45 @@ public class AnnoDoc {
 			working = true;
 			new Thread(() -> {
 				System.out.println(sentence);
-				SentenceAlgorithms al = sentence.algorithms();
-				for (String phrase : al.keyphrases()) {
-					System.out.println(phrase);
-				}
-				System.out.println(sentence.dependencyGraph());
-//				for (RelationTriple rt : sentence.openieTriples()) {
-//					System.out.println(rt);
-//				}
+				
 				App.showAnimatedStatus("Parsing");
-				Tree tree = sentence.parse();
+				List<Optional<Integer>> gs = sentence.governors();
+				for (int i = 0; i < gs.size(); i++) {
+					String w = sentence.word(i);
+					Optional<Integer> g = gs.get(i);
+					Optional<String> label = sentence.incomingDependencyLabel(i);
+					if (g.isPresent()) {
+						int n = g.get();
+						if (n >= 0) {
+							System.out.println(w + ": " + sentence.word(n));
+						} else {
+							System.out.println(w + ": ROOT");
+						}
+					} else {
+						System.out.println(w + ": NONE");
+					}
+					System.out.println(label.orElse("NO LABEL"));
+				}
 				App.stopAnimatedStatus();
 				App.showStatus("Ready");
-				System.out.println(tree);
+				
+//				SentenceAlgorithms al = sentence.algorithms();
+//				for (String phrase : al.keyphrases()) {
+//					System.out.println(phrase);
+//				}
+
+//				System.out.println(sentence.dependencyGraph());
+
+				//				for (RelationTriple rt : sentence.openieTriples()) {
+//					System.out.println(rt);
+//				}
+
+//				App.showAnimatedStatus("Parsing");
+//				Tree tree = sentence.parse();
+//				App.stopAnimatedStatus();
+//				App.showStatus("Ready");
+//				System.out.println(tree);
+
 				working = false;
 			}).start();
 		}
