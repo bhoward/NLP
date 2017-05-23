@@ -21,6 +21,7 @@ import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import edu.depauw.janno.AnnoDoc;
@@ -42,6 +43,8 @@ public class Window {
 	private CurrentPage cp;
 	private Thread animThread;
 	private String animSuffix;
+	private JButton btnZoomIn;
+	private JButton btnZoomOut;
 
 	/**
 	 * Create the application.
@@ -70,7 +73,7 @@ public class Window {
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		chooser = new JFileChooser();
-		FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF file", "pdf");
+		FileFilter pdfFilter = new FileNameExtensionFilter("PDF file", "pdf");
 		chooser.addChoosableFileFilter(pdfFilter);
 		chooser.setFileFilter(pdfFilter);
 
@@ -92,6 +95,8 @@ public class Window {
 						list.setModel(doc.extractSentences());
 						btnNext.setEnabled(true);
 						btnPrevious.setEnabled(true);
+						btnZoomIn.setEnabled(true);
+						btnZoomOut.setEnabled(true);
 					} catch (IOException e1) {
 						showStatus(e1.getMessage());
 					}
@@ -118,7 +123,7 @@ public class Window {
 		leftPanel.add(navPanel, BorderLayout.SOUTH);
 		navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.X_AXIS));
 
-		btnPrevious = new JButton("Previous");
+		btnPrevious = new JButton("<");
 		btnPrevious.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cp.previous();
@@ -127,7 +132,25 @@ public class Window {
 		btnPrevious.setEnabled(false);
 		navPanel.add(btnPrevious);
 
-		btnNext = new JButton("Next");
+		btnZoomOut = new JButton("-");
+		btnZoomOut.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cp.zoomOut();
+			}
+		});
+		btnZoomOut.setEnabled(false);
+		navPanel.add(btnZoomOut);
+
+		btnZoomIn = new JButton("+");
+		btnZoomIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cp.zoomIn();
+			}
+		});
+		btnZoomIn.setEnabled(false);
+		navPanel.add(btnZoomIn);
+		
+		btnNext = new JButton(">");
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cp.next();
@@ -135,7 +158,7 @@ public class Window {
 		});
 		btnNext.setEnabled(false);
 		navPanel.add(btnNext);
-
+		
 		listScrollPane = new JScrollPane();
 		splitPane.setRightComponent(listScrollPane);
 

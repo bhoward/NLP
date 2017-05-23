@@ -42,6 +42,16 @@ public class CurrentPage {
 			updatePage();
 		}
 	}
+	
+	public void zoomIn() {
+		scale *= 1.2;
+		updatePage();
+	}
+	
+	public void zoomOut() {
+		scale /= 1.2;
+		updatePage();
+	}
 
 	private void updatePage() {
 		try {
