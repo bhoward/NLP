@@ -70,7 +70,9 @@ public class Window {
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 
 		chooser = new JFileChooser();
-		chooser.addChoosableFileFilter(new FileNameExtensionFilter("PDF file", "pdf"));
+		FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF file", "pdf");
+		chooser.addChoosableFileFilter(pdfFilter);
+		chooser.setFileFilter(pdfFilter);
 
 		controlPanel = new JPanel();
 		frame.getContentPane().add(controlPanel, BorderLayout.NORTH);
