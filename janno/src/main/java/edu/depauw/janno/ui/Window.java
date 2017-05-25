@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -18,6 +20,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -81,8 +84,7 @@ public class Window {
 		frame.getContentPane().add(controlPanel, BorderLayout.NORTH);
 		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
 
-		JButton btnLoad = new JButton("Load");
-		btnLoad.addActionListener(new ActionListener() {
+		Action loadAction = new AbstractAction("Load") {
 			public void actionPerformed(ActionEvent e) {
 				if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
 					File in = chooser.getSelectedFile();
@@ -102,7 +104,8 @@ public class Window {
 					}
 				}
 			}
-		});
+		};
+		JButton btnLoad = new JButton(loadAction);
 		controlPanel.add(btnLoad);
 
 		JSplitPane splitPane = new JSplitPane();
@@ -123,40 +126,48 @@ public class Window {
 		leftPanel.add(navPanel, BorderLayout.SOUTH);
 		navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.X_AXIS));
 
-		btnPrevious = new JButton("<");
-		btnPrevious.addActionListener(new ActionListener() {
+		Action previousAction = new AbstractAction("<") {
 			public void actionPerformed(ActionEvent e) {
 				cp.previous();
 			}
-		});
+		};
+		btnPrevious = new JButton(previousAction);
 		btnPrevious.setEnabled(false);
+		btnPrevious.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('<'), "previous");
+		btnPrevious.getActionMap().put("previous", previousAction);
 		navPanel.add(btnPrevious);
 
-		btnZoomOut = new JButton("-");
-		btnZoomOut.addActionListener(new ActionListener() {
+		Action zoomOutAction = new AbstractAction("-") {
 			public void actionPerformed(ActionEvent e) {
 				cp.zoomOut();
 			}
-		});
+		}; 
+		btnZoomOut = new JButton(zoomOutAction);
 		btnZoomOut.setEnabled(false);
+		btnZoomOut.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('-'), "zoomout");
+		btnZoomOut.getActionMap().put("zoomout", zoomOutAction);
 		navPanel.add(btnZoomOut);
 
-		btnZoomIn = new JButton("+");
-		btnZoomIn.addActionListener(new ActionListener() {
+		Action zoomInAction = new AbstractAction("+") {
 			public void actionPerformed(ActionEvent e) {
 				cp.zoomIn();
 			}
-		});
+		}; 
+		btnZoomIn = new JButton(zoomInAction);
 		btnZoomIn.setEnabled(false);
+		btnZoomIn.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('+'), "zoomin");
+		btnZoomIn.getActionMap().put("zoomin", zoomInAction);
 		navPanel.add(btnZoomIn);
-		
-		btnNext = new JButton(">");
-		btnNext.addActionListener(new ActionListener() {
+
+		Action nextAction = new AbstractAction(">") {
 			public void actionPerformed(ActionEvent e) {
 				cp.next();
 			}
-		});
+		};
+		btnNext = new JButton(nextAction);
 		btnNext.setEnabled(false);
+		btnNext.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('>'), "next");
+		btnNext.getActionMap().put("next", nextAction);
 		navPanel.add(btnNext);
 		
 		listScrollPane = new JScrollPane();
