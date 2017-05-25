@@ -28,7 +28,8 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import edu.depauw.janno.AnnoDoc;
-import edu.stanford.nlp.simple.Sentence;;
+import edu.stanford.nlp.simple.Sentence;
+import javax.swing.JTextPane;;
 
 public class Window {
 	private JFrame frame;
@@ -38,16 +39,18 @@ public class Window {
 	private JScrollPane listScrollPane;
 	private JPanel controlPanel;
 	private JPanel navPanel;
-	private JButton btnPrevious;
-	private JButton btnNext;
 	private JList<Sentence> list;
 
 	private AnnoDoc doc;
 	private CurrentPage cp;
 	private Thread animThread;
 	private String animSuffix;
-	private JButton btnZoomIn;
-	private JButton btnZoomOut;
+	private JTextPane textPane;
+	private Action previousAction;
+	private Action zoomOutAction;
+	private Action zoomInAction;
+	private Action nextAction;
+	private Action analyzeAction;
 
 	/**
 	 * Create the application.
@@ -95,10 +98,11 @@ public class Window {
 						doc = new AnnoDoc(in);
 						cp = doc.getCurrentPage(pageScrollPane);
 						list.setModel(doc.extractSentences());
-						btnNext.setEnabled(true);
-						btnPrevious.setEnabled(true);
-						btnZoomIn.setEnabled(true);
-						btnZoomOut.setEnabled(true);
+						
+						nextAction.setEnabled(true);
+						previousAction.setEnabled(true);
+						zoomInAction.setEnabled(true);
+						zoomOutAction.setEnabled(true);
 					} catch (IOException e1) {
 						showStatus(e1.getMessage());
 					}
@@ -107,6 +111,15 @@ public class Window {
 		};
 		JButton btnLoad = new JButton(loadAction);
 		controlPanel.add(btnLoad);
+
+		analyzeAction = new AbstractAction("Analyze") {
+			public void actionPerformed(ActionEvent e) {
+				doc.selectSentence(new Sentence(textPane.getText())); // TODO should this try to use the selected Sentence object itself, for document context?
+			}
+		};
+		analyzeAction.setEnabled(false);
+		JButton btnAnalyze = new JButton(analyzeAction);
+		controlPanel.add(btnAnalyze);
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.5);
@@ -126,59 +139,66 @@ public class Window {
 		leftPanel.add(navPanel, BorderLayout.SOUTH);
 		navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.X_AXIS));
 
-		Action previousAction = new AbstractAction("<") {
+		previousAction = new AbstractAction("<") {
 			public void actionPerformed(ActionEvent e) {
 				cp.previous();
 			}
 		};
-		btnPrevious = new JButton(previousAction);
-		btnPrevious.setEnabled(false);
+		previousAction.setEnabled(false);
+		JButton btnPrevious = new JButton(previousAction);
 		btnPrevious.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('<'), "previous");
 		btnPrevious.getActionMap().put("previous", previousAction);
 		navPanel.add(btnPrevious);
 
-		Action zoomOutAction = new AbstractAction("-") {
+		zoomOutAction = new AbstractAction("-") {
 			public void actionPerformed(ActionEvent e) {
 				cp.zoomOut();
 			}
 		}; 
-		btnZoomOut = new JButton(zoomOutAction);
-		btnZoomOut.setEnabled(false);
+		zoomOutAction.setEnabled(false);
+		JButton btnZoomOut = new JButton(zoomOutAction);
 		btnZoomOut.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('-'), "zoomout");
 		btnZoomOut.getActionMap().put("zoomout", zoomOutAction);
 		navPanel.add(btnZoomOut);
 
-		Action zoomInAction = new AbstractAction("+") {
+		zoomInAction = new AbstractAction("+") {
 			public void actionPerformed(ActionEvent e) {
 				cp.zoomIn();
 			}
 		}; 
-		btnZoomIn = new JButton(zoomInAction);
-		btnZoomIn.setEnabled(false);
+		zoomInAction.setEnabled(false);
+		JButton btnZoomIn = new JButton(zoomInAction);
 		btnZoomIn.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('+'), "zoomin");
 		btnZoomIn.getActionMap().put("zoomin", zoomInAction);
 		navPanel.add(btnZoomIn);
 
-		Action nextAction = new AbstractAction(">") {
+		nextAction = new AbstractAction(">") {
 			public void actionPerformed(ActionEvent e) {
 				cp.next();
 			}
 		};
-		btnNext = new JButton(nextAction);
-		btnNext.setEnabled(false);
+		nextAction.setEnabled(false);
+		JButton btnNext = new JButton(nextAction);
 		btnNext.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('>'), "next");
 		btnNext.getActionMap().put("next", nextAction);
 		navPanel.add(btnNext);
 		
+		JPanel rightPanel = new JPanel();
+		rightPanel.setLayout(new BorderLayout(0, 0));
+		splitPane.setRightComponent(rightPanel);
+
 		listScrollPane = new JScrollPane();
-		splitPane.setRightComponent(listScrollPane);
+		rightPanel.add(listScrollPane, BorderLayout.CENTER);
 
 		list = new JList<Sentence>();
 		list.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				if (doc != null) {
+				if (doc != null && !list.isSelectionEmpty()) {
 					Sentence sentence = list.getSelectedValue();
-					doc.selectSentence(sentence);
+					textPane.setText(sentence.text());
+					analyzeAction.setEnabled(true);
+				} else {
+					analyzeAction.setEnabled(false);
 				}
 			}
 		});
@@ -195,7 +215,10 @@ public class Window {
 			}
 		});
 		listScrollPane.setViewportView(list);
-
+		
+		textPane = new JTextPane();
+		rightPanel.add(textPane, BorderLayout.SOUTH);
+		
 		status = new JLabel(" ");
 		frame.getContentPane().add(status, BorderLayout.SOUTH);
 	}

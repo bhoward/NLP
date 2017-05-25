@@ -30,14 +30,6 @@ public class AnnoDoc {
 		text = text.replaceAll("-\n", "");
 		text = text.replaceAll("[^\\x20-\\x7E]", " ");
 		nlpDoc = new Document(text);
-
-		// new Thread(() -> {
-		// // start parsing the first sentence, because it will take a while to
-		// compute the references across the whole document
-		// App.showStatus("Parsing...");
-		// nlpDoc.sentence(0).parse();
-		// App.showStatus("Ready");
-		// }).start();;
 	}
 
 	public void close() throws IOException {
@@ -61,38 +53,6 @@ public class AnnoDoc {
 			working = true;
 			new Thread(() -> {
 				System.out.println(sentence);
-
-				// App.showAnimatedStatus("Parsing");
-				// List<Optional<Integer>> gs = sentence.governors();
-				// for (int i = 0; i < gs.size(); i++) {
-				// String w = sentence.word(i);
-				// Optional<Integer> g = gs.get(i);
-				// Optional<String> label = sentence.incomingDependencyLabel(i);
-				// if (g.isPresent()) {
-				// int n = g.get();
-				// if (n >= 0) {
-				// System.out.println(w + ": " + sentence.word(n));
-				// } else {
-				// System.out.println(w + ": ROOT");
-				// }
-				// } else {
-				// System.out.println(w + ": NONE");
-				// }
-				// System.out.println(label.orElse("NO LABEL"));
-				// }
-				// App.stopAnimatedStatus();
-				// App.showStatus("Ready");
-
-				// SentenceAlgorithms al = sentence.algorithms();
-				// for (String phrase : al.keyphrases()) {
-				// System.out.println(phrase);
-				// }
-
-				// System.out.println(sentence.dependencyGraph());
-
-				// for (RelationTriple rt : sentence.openieTriples()) {
-				// System.out.println(rt);
-				// }
 
 				App.showAnimatedStatus("Parsing");
 				Tree tree = sentence.parse();
