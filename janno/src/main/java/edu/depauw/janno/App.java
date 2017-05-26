@@ -48,3 +48,8 @@ public class App {
 
 	private static Window window;
 }
+
+/* TODO:
+ * Allow opening other kinds of documents (txt, rtf, doc?)? Use Apache Tika?
+ * When sentence selected for analysis, bring up separate window to edit annotations.
+ */
