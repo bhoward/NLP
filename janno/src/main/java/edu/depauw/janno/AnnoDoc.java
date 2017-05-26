@@ -2,7 +2,6 @@ package edu.depauw.janno;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -27,8 +26,9 @@ public class AnnoDoc {
 		pdfDoc = PDDocument.load(in);
 		PDFTextStripper stripper = new PDFTextStripper();
 		String text = stripper.getText(pdfDoc);
-		text = text.replaceAll("-\n", "");
-		text = text.replaceAll("[^\\x20-\\x7E]", " ");
+		text = text.replaceAll("-\n", ""); // rejoin hyphenated words
+		text = text.replaceAll("[\\x00-\\x1F]", " "); // remove control characters
+		text = text.replaceAll(" +", " "); // compress blanks
 		nlpDoc = new Document(text);
 	}
 
@@ -66,14 +66,14 @@ public class AnnoDoc {
 						StringBuilder sb = new StringBuilder();
 						boolean first = true;
 						for (Word w : words) {
-							String s = w.value();
-							if (!first && Character.isAlphabetic(s.charAt(0))) {
+							if (!first) {
 								sb.append(' ');
+							} else {
+								first = false;
 							}
-							sb.append(s);
-							first = false;
+							sb.append(w);
 						}
-						System.out.println(sb.toString());
+						System.out.println(sb);
 					}
 				}
 
