@@ -45,3 +45,7 @@ public class App {
 		}
 	}
 }
+
+/* TODO:
+ * When sentence selected for analysis, bring up separate window to edit annotations.
+ */
