@@ -89,7 +89,9 @@ public class Window {
 
 		analyzeAction = new AbstractAction("Analyze") {
 			public void actionPerformed(ActionEvent e) {
-				doc.selectSentence(new Sentence(textPane.getText())); // TODO should this try to use the selected Sentence object itself, for document context?
+				AnnoSentence as = new AnnoSentence(new Sentence(textPane.getText())); // TODO should this try to use the selected Sentence object itself, for document context?
+				SentWindow sw = new SentWindow(as);
+				sw.setVisible(true);
 			}
 		};
 		analyzeAction.setEnabled(false);
