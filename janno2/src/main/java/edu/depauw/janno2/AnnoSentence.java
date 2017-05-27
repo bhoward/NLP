@@ -8,6 +8,7 @@ import javax.swing.ListModel;
 import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.simple.Sentence;
 import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.util.IntPair;
 
 public class AnnoSentence {
 	private Sentence sentence;
@@ -25,9 +26,13 @@ public class AnnoSentence {
 			App.showAnimatedStatus("Parsing");
 			Tree tree = sentence.parse();
 			System.out.println(tree);
+			tree.setSpans();
 
 			for (Tree t : tree.subTreeList()) {
 				if (t.value().equals("NP")) {
+					IntPair p = t.getSpan();
+					int left = sentence.characterOffsetBegin(p.get(0));
+					int right = sentence.characterOffsetEnd(p.get(1));
 					List<Word> words = t.yieldWords();
 					StringBuilder sb = new StringBuilder();
 					boolean first = true;
@@ -39,7 +44,7 @@ public class AnnoSentence {
 						}
 						sb.append(w);
 					}
-					phrases.addElement(sb.toString()); // TODO associate start/end positions
+					phrases.addElement(sb.toString() + " [" + left + "," + right + "]"); // TODO associate start/end positions
 				}
 			}
 			
