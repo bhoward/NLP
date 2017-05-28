@@ -18,11 +18,8 @@ public class AnnoSentence {
 		DefaultListModel<AnnoPhrase> phrases = new DefaultListModel<>();
 
 		new Thread(() -> {
-			System.out.println(sentence);
-
 			App.showAnimatedStatus("Parsing");
 			Tree tree = sentence.parse();
-			System.out.println(tree);
 			tree.setSpans();
 
 			for (Tree t : tree.subTreeList()) {
