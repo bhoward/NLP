@@ -61,9 +61,18 @@ public class SentWindow extends JFrame {
 			@Override
 			public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
 					boolean cellHasFocus) {
-				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-				if (index % 2 == 0 && !isSelected) {
-					setBackground(new Color(250, 200, 150));
+				setText(value.toString());
+
+				if (isSelected) {
+					setBackground(list.getSelectionBackground());
+					setForeground(list.getSelectionForeground());
+				} else {
+					if (index % 2 == 0) {
+						setBackground(new Color(250, 200, 150));
+					} else {
+						setBackground(list.getBackground());
+					}
+					setForeground(list.getForeground());
 				}
 				return this;
 			}
