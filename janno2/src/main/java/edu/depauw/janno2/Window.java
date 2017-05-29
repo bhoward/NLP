@@ -90,7 +90,8 @@ public class Window {
 		analyzeAction = new AbstractAction("Analyze") {
 			public void actionPerformed(ActionEvent e) {
 				// TODO should this try to use the selected Sentence object itself, for document parsing context?
-				AnnoSentence as = new AnnoSentence(new Sentence(textPane.getText()));
+//				AnnoSentence as = new AnnoSentence(new Sentence(textPane.getText()));
+				AnnoSentence as = new AnnoSentence(list.getSelectedValue());
 				SentWindow sw = new SentWindow(as);
 				sw.setVisible(true);
 			}

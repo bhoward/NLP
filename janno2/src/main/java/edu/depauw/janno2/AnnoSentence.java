@@ -20,13 +20,33 @@ public class AnnoSentence {
 		new Thread(() -> {
 			App.showAnimatedStatus("Parsing");
 			Tree tree = sentence.parse();
+			System.out.println(tree);
+			System.out.println(sentence.lemmas());
+			System.out.println(sentence.governors());
+			System.out.println(sentence.coref());
 			tree.setSpans();
 
 			for (Tree t : tree.subTreeList()) {
 				if (t.value().equals("NP")) {
 					IntPair p = t.getSpan();
-					int left = sentence.characterOffsetBegin(p.get(0));
-					int right = sentence.characterOffsetEnd(p.get(1));
+					int first = p.get(0);
+					int last = p.get(1);
+
+					int left = sentence.characterOffsetBegin(first) - sentence.characterOffsetBegin(0);
+					int right = sentence.characterOffsetEnd(last) - sentence.characterOffsetBegin(0);
+
+					int gov = -1;
+					for (int i = first; i <= last; i++) {
+						int g = sentence.governor(i).orElse(-2);
+						if (g < first || g > last) {
+							gov = g;
+						}
+					}
+					if (gov == -1) {
+						System.out.println(t + ": NONE");
+					} else {
+						System.out.println(t + ": " + sentence.lemma(gov));
+					}
 					phrases.addElement(new AnnoPhrase(text().substring(left, right), left, right));
 				}
 			}

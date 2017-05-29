@@ -19,7 +19,7 @@ public class AnnoDoc {
 
 	public AnnoDoc(File in) throws IOException {
 		try (BufferedReader r = new BufferedReader(new ParsingReader(in)); Stream<String> lines = r.lines()) {
-			String text = lines.collect(Collectors.joining());
+			String text = lines.map(s -> s + " ").collect(Collectors.joining());
 			text = text.replaceAll("-\n", ""); // rejoin hyphenated words
 			text = text.replaceAll("[\\x00-\\x1F]", " "); // remove control
 															// characters
