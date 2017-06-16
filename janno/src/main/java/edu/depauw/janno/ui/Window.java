@@ -119,6 +119,12 @@ public class Window {
 		analyzeAction.setEnabled(false);
 		JButton btnAnalyze = new JButton(analyzeAction);
 		controlPanel.add(btnAnalyze);
+		
+		controlPanel.add(new JButton(new AbstractAction("Test") {
+			public void actionPerformed(ActionEvent e) {
+				cp.addAnnotation(0, 0, 144, 72);
+			}
+		}));
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.5);
