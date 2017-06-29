@@ -81,4 +81,8 @@ public class AnnoDoc {
 			}).start();
 		}
 	}
+
+	public PDDocument getPDDoc() {
+		return pdfDoc;
+	}
 }

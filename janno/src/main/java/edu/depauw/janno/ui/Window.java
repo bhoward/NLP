@@ -27,7 +27,10 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import edu.depauw.janno.AnnoDoc;
+import edu.depauw.janno.PDFTextAnnotator;
 import edu.stanford.nlp.simple.Sentence;;
 
 public class Window {
@@ -125,6 +128,16 @@ public class Window {
 				cp.addAnnotation(72, 600, 144, 72);
 				cp.addAnnotation(72, 456, 288, 72);
 				cp.updatePage();
+				try {
+					PDFTextAnnotator ta = new PDFTextAnnotator();
+					PDDocument pdf = doc.getPDDoc();
+					ta.initialize(pdf);
+					ta.highlight(pdf, "the");
+					pdf.save(new File("/tmp/test.pdf"));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		}));
 
