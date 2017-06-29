@@ -122,7 +122,9 @@ public class Window {
 		
 		controlPanel.add(new JButton(new AbstractAction("Test") {
 			public void actionPerformed(ActionEvent e) {
-				cp.addAnnotation(0, 0, 144, 72);
+				cp.addAnnotation(72, 600, 144, 72);
+				cp.addAnnotation(72, 456, 288, 72);
+				cp.updatePage();
 			}
 		}));
 
