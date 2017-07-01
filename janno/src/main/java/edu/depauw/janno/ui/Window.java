@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -28,6 +30,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 
 import edu.depauw.janno.AnnoDoc;
 import edu.depauw.janno.PDFTextAnnotator;
@@ -125,15 +128,15 @@ public class Window {
 		
 		controlPanel.add(new JButton(new AbstractAction("Test") {
 			public void actionPerformed(ActionEvent e) {
-				cp.addAnnotation(72, 600, 144, 72);
-				cp.addAnnotation(72, 456, 288, 72);
-				cp.updatePage();
 				try {
-					PDFTextAnnotator ta = new PDFTextAnnotator();
+					PDFTextAnnotator ta = new PDFTextAnnotator(doc);
+					ta.initialize();
+					ta.highlight("the");
+					
 					PDDocument pdf = doc.getPDDoc();
-					ta.initialize(pdf);
-					ta.highlight(pdf, "the");
 					pdf.save(new File("/tmp/test.pdf"));
+					
+					cp.updatePage();
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();

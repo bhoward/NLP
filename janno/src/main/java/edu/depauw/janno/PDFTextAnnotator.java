@@ -13,11 +13,7 @@ import java.util.regex.Pattern;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
-import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
@@ -25,15 +21,13 @@ import org.apache.pdfbox.util.Matrix;
 
 public class PDFTextAnnotator extends PDFTextStripper {
 
-	private float verticalTolerance = 0;
-	private float heightModifier = (float) 2.250;
+	private float verticalTolerance = 0.01f;
+	private float heightModifier = (float) 1.50;
 
 	private class Match {
-		public final String str;
 		public final List<TextPosition> positions;
 
-		public Match(String str, List<TextPosition> positions) {
-			this.str = str;
+		public Match(List<TextPosition> positions) {
 			this.positions = positions;
 		}
 	}
@@ -90,14 +84,14 @@ public class PDFTextAnnotator extends PDFTextStripper {
 
 			while (matcher.find()) {
 				List<TextPosition> elements = this.getTextPositions(pageNo).subList(matcher.start(), matcher.end());
-				matches.add(new Match(matcher.group(), elements));
+				matches.add(new Match(elements));
 			}
 			return matches;
 		}
 	}
 
 	private TextCache textCache;
-	private PDColor defaultColor;
+	private AnnoDoc doc;
 
 	/**
 	 * Instantiate a new PDFTextAnnotator object. This object will load
@@ -106,8 +100,8 @@ public class PDFTextAnnotator extends PDFTextStripper {
 	 * @throws IOException
 	 *             If there is an error reading the properties.
 	 */
-	public PDFTextAnnotator() throws IOException {
-		super();
+	public PDFTextAnnotator(AnnoDoc doc) throws IOException {
+		this.doc = doc;
 	}
 
 	/**
@@ -128,21 +122,22 @@ public class PDFTextAnnotator extends PDFTextStripper {
 				continue;
 			}
 			Matrix textPos = position.getTextMatrix();
-			float height = (float) (position.getHeight() * getHeightModifier());
+			float height = (float) (position.getHeight() * heightModifier);
+			float drop = (float) (position.getHeight() * (heightModifier - 1) / 2);
 			if (first) {
 				lowerLeftX = textPos.getTranslateX();
 				upperRightX = lowerLeftX + position.getWidth();
 
-				lowerLeftY = textPos.getTranslateY();
+				lowerLeftY = textPos.getTranslateY() - drop;
 				upperRightY = lowerLeftY + height;
 				first = false;
 				continue;
 			}
 
 			// we are still on the same line
-			if (Math.abs(textPos.getTranslateY() - lowerLeftY) <= getVerticalTolerance()) {
+			if (Math.abs(textPos.getTranslateY() - drop - lowerLeftY) <= getVerticalTolerance()) {
 				upperRightX = textPos.getTranslateX() + position.getWidth();
-				upperRightY = textPos.getTranslateY() + height;
+				upperRightY = textPos.getTranslateY() - drop + height;
 			} else {
 				PDRectangle boundingBox = boundingBox(lowerLeftX, lowerLeftY, upperRightX, upperRightY);
 				boundingBoxes.add(boundingBox);
@@ -151,7 +146,7 @@ public class PDFTextAnnotator extends PDFTextStripper {
 				lowerLeftX = textPos.getTranslateX();
 				upperRightX = lowerLeftX + position.getWidth();
 
-				lowerLeftY = textPos.getTranslateY();
+				lowerLeftY = textPos.getTranslateY() - drop;
 				upperRightY = lowerLeftY + height;
 			}
 		}
@@ -177,14 +172,12 @@ public class PDFTextAnnotator extends PDFTextStripper {
 	 * every page, but cannot process patterns that span multiple pages. Note: it
 	 * will not work for top-bottom text (such as Chinese)
 	 * 
-	 * @param pdf
-	 *            PDDocument
 	 * @param pattern
 	 *            String that will be converted to Regex pattern
 	 * @throws IOException
 	 */
-	public List<PDAnnotationTextMarkup> highlight(final PDDocument pdf, final String pattern) throws IOException {
-		return highlight(pdf, Pattern.compile(pattern));
+	public List<PDAnnotationTextMarkup> highlight(final String pattern) throws IOException {
+		return highlight(Pattern.compile(pattern));
 	}
 
 	/**
@@ -193,90 +186,33 @@ public class PDFTextAnnotator extends PDFTextStripper {
 	 * every page, but cannot process patterns that span multiple pages. Note: it
 	 * will not work for top-bottom text (such as Chinese)
 	 * 
-	 * @param pdf
-	 *            PDDocument
 	 * @param pattern
 	 *            Pattern (regex)
 	 * @throws IOException 
 	 */
-	public List<PDAnnotationTextMarkup> highlight(PDDocument pdf, Pattern pattern) throws IOException {
+	public List<PDAnnotationTextMarkup> highlight(Pattern pattern) throws IOException {
 		if (textCache == null) {
 			throw new RuntimeException("TextCache was not initilized, please run initialize on the document first");
 		}
 
-		PDPageTree pages = pdf.getPages();
+		ArrayList<PDAnnotationTextMarkup> highlights = new ArrayList<PDAnnotationTextMarkup>();
 
-		ArrayList<PDAnnotationTextMarkup> highligts = new ArrayList<PDAnnotationTextMarkup>();
-
-		int pageIndex = 0;
-		for (PDPage page : pages) {
-			pageIndex++;
+		for (int pageIndex = 1; pageIndex <= doc.getNumberOfPages(); pageIndex++) {
 			if (pageIndex < getStartPage() || pageIndex > getEndPage())
 				continue;
-
-			List<PDAnnotation> annotations = page.getAnnotations();
 
 			List<Match> matches = this.textCache.getTextPositions(pageIndex, pattern);
 
 			for (Match match : matches) {
 				List<PDRectangle> textBoundingBoxes = getTextBoundingBoxes(match.positions);
 
-				PDAnnotationTextMarkup markup = new PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT);
 				if (textBoundingBoxes.size() > 0) {
-					markup.setRectangle(textBoundingBoxes.get(0));
-
-					float[] quads = new float[8 * textBoundingBoxes.size()];
-					int cursor = 0;
-					for (PDRectangle rect : textBoundingBoxes) {
-						float[] tmp = computeQuads(rect);
-						for (int i = 0; i < tmp.length; i++) {
-							quads[cursor + i] = tmp[i];
-						}
-						cursor = cursor + 8;
-					}
-
-					markup.setQuadPoints(quads);
-
-					markup.setConstantOpacity((float) 0.8);
-					markup.setColor(getDefaultColor());
-					markup.setPrinted(true);
-					markup.setContents(match.str);
-
-					annotations.add(markup);
-					highligts.add(markup);
+					PDAnnotationTextMarkup highlight = doc.addAnnotation(pageIndex - 1, textBoundingBoxes);
+					highlights.add(highlight);
 				}
 			}
 		}
-		return highligts;
-	}
-
-	private float[] computeQuads(PDRectangle rect) {
-		float[] quads = new float[8];
-		// top left
-		quads[0] = rect.getLowerLeftX(); // x1
-		quads[1] = rect.getUpperRightY(); // y1
-		// bottom left
-		quads[2] = rect.getUpperRightX(); // x2
-		quads[3] = quads[1]; // y2
-		// top right
-		quads[4] = quads[0]; // x3
-		quads[5] = rect.getLowerLeftY(); // y3
-		// bottom right
-		quads[6] = quads[2]; // x4
-		quads[7] = quads[5]; // y5
-		return quads;
-	}
-
-	public void setDefaultColor(PDColor color) {
-		this.defaultColor = color;
-	}
-
-	public PDColor getDefaultColor() {
-		if (this.defaultColor != null) {
-			return this.defaultColor;
-		} else { // #fbe85a
-			return new PDColor(new float[] {0.9843f, 0.9098f, 0.3879f}, PDDeviceRGB.INSTANCE);
-		}
+		return highlights;
 	}
 
 	public float getVerticalTolerance() {
@@ -287,19 +223,9 @@ public class PDFTextAnnotator extends PDFTextStripper {
 		this.verticalTolerance = tolerance;
 	}
 
-//	/**
-//	 * {@inheritDoc}
-//	 */
-//	@Override
-//	public void resetEngine() {
-//		super.resetEngine();
-//		this.textCache = null;
-//	}
-
-	public void initialize(final PDDocument pdf) throws IOException {
-//		this.resetEngine();
-
+	public void initialize() throws IOException {
 		this.textCache = new TextCache();
+		PDDocument pdf = doc.getPDDoc();
 
 		if (this.getAddMoreFormatting()) {
 			this.setParagraphEnd(this.getLineSeparator());
@@ -326,7 +252,6 @@ public class PDFTextAnnotator extends PDFTextStripper {
 	protected void startArticle(final boolean isltr) throws IOException {
 		String articleStart = this.getArticleStart();
 		this.textCache.append(articleStart, null);
-
 	}
 
 	/**
@@ -340,7 +265,6 @@ public class PDFTextAnnotator extends PDFTextStripper {
 	protected void endArticle() throws IOException {
 		String articleEnd = this.getArticleEnd();
 		this.textCache.append(articleEnd, null);
-
 	}
 
 	/**
@@ -384,7 +308,6 @@ public class PDFTextAnnotator extends PDFTextStripper {
 	protected void writeLineSeparator() {
 		String lineSeparator = this.getLineSeparator();
 		this.textCache.append(lineSeparator, null);
-
 	}
 
 	/**
@@ -479,6 +402,9 @@ public class PDFTextAnnotator extends PDFTextStripper {
 
 		this.inParagraph = false;
 	}
+	// TODO add a marker for paragraph end, then when normalizing the extracted text
+	// remove that marker if at the bottom of a column (if next position is higher on
+	// the page?). Paragraph markers should force a sentence break (to handle title stuff).
 
 	/**
 	 * Write something (if defined) at the start of a page.
@@ -503,13 +429,4 @@ public class PDFTextAnnotator extends PDFTextStripper {
 		String pageEnd = this.getPageEnd();
 		this.textCache.append(pageEnd, null);
 	}
-
-	public float getHeightModifier() {
-		return heightModifier;
-	}
-
-	public void setHeightModifier(float heightModifier) {
-		this.heightModifier = heightModifier;
-	}
-
 }
