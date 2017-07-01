@@ -10,4 +10,9 @@ public class AnnoSentence {
 		this.text = text;
 		this.locations = locations;
 	}
+	
+	@Override
+	public String toString() {
+		return text;
+	}
 }

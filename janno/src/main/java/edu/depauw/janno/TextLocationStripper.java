@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.swing.DefaultListModel;
+import javax.swing.ListModel;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -52,6 +55,34 @@ public class TextLocationStripper extends PDFTextStripper {
 		this.startDocument(doc);
 		this.processPages(doc.getPages());
 		this.endDocument(doc);
+		
+		// clean up column bottoms
+		for (int i = 1; i < text.length() - 1; i++) {
+			if (text.charAt(i) == '\n') {
+				// check for previous location being at bottom of a column
+				int prev = i - 1;
+				Location prevLoc = locations.get(prev);
+				while (prevLoc.rectangle == null && prev > 0) {
+					prev--;
+					prevLoc = locations.get(prev);
+				}
+				if (prevLoc.rectangle == null) continue;
+				
+				int next = i + 1;
+				Location nextLoc = locations.get(next);
+				while (nextLoc.rectangle == null && next < text.length() - 1) {
+					next++;
+					nextLoc = locations.get(next);
+				}
+				if (nextLoc.rectangle == null) continue;
+				
+				if (prevLoc.rectangle.getLowerLeftY() < nextLoc.rectangle.getLowerLeftY()) {
+					// remove the paragraph break (\n) if so
+					text.deleteCharAt(i);
+					locations.remove(i);
+				}
+			}
+		}
 	}
 
 	private PDRectangle getTextBoundingBox(TextPosition position) {
@@ -66,8 +97,8 @@ public class TextLocationStripper extends PDFTextStripper {
 		return new PDRectangle(llx, lly, width, height);
 	}
 
-	public List<AnnoSentence> extractSentences() {
-		List<AnnoSentence> sentences = new ArrayList<>();
+	public ListModel<AnnoSentence> extractSentences() {
+		DefaultListModel<AnnoSentence> sentences = new DefaultListModel<>();
 
 		Properties props = new Properties();
 		props.setProperty("annotators", "tokenize, ssplit");
@@ -83,7 +114,7 @@ public class TextLocationStripper extends PDFTextStripper {
 			String s = text.substring(start, end);
 			List<Location> locs = combineLocations(locations.subList(start, end));
 			AnnoSentence sentence = new AnnoSentence(s, locs);
-			sentences.add(sentence);
+			sentences.addElement(sentence);
 		}
 
 		return sentences;
@@ -228,10 +259,4 @@ public class TextLocationStripper extends PDFTextStripper {
 		appendLocation("\n", null);
 		this.inParagraph = false;
 	}
-	// TODO add a newline marker for paragraph end, then when normalizing the
-	// extracted text
-	// remove that marker if at the bottom of a column (if next position is
-	// higher on
-	// the page?). Paragraph markers should force a sentence break (to handle
-	// title stuff).
 }

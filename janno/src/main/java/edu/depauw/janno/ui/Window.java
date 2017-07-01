@@ -6,8 +6,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -30,11 +28,9 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 
 import edu.depauw.janno.AnnoDoc;
 import edu.depauw.janno.AnnoSentence;
-import edu.depauw.janno.Location;
 import edu.depauw.janno.TextLocationStripper;
 import edu.stanford.nlp.simple.Sentence;;
 
@@ -46,7 +42,7 @@ public class Window {
 	private JScrollPane listScrollPane;
 	private JPanel controlPanel;
 	private JPanel navPanel;
-	private JList<Sentence> list;
+	private JList<AnnoSentence> list;
 
 	private AnnoDoc doc;
 	private CurrentPage cp;
@@ -104,7 +100,10 @@ public class Window {
 						}
 						doc = new AnnoDoc(in);
 						cp = doc.getCurrentPage(pageScrollPane);
-						list.setModel(doc.extractSentences());
+						
+						PDDocument pdf = doc.getPDDoc();
+						TextLocationStripper ta = new TextLocationStripper(pdf);
+						list.setModel(ta.extractSentences());
 						
 						nextAction.setEnabled(true);
 						previousAction.setEnabled(true);
@@ -121,38 +120,13 @@ public class Window {
 
 		analyzeAction = new AbstractAction("Analyze") {
 			public void actionPerformed(ActionEvent e) {
-				doc.selectSentence(new Sentence(textPane.getText())); // TODO should this try to use the selected Sentence object itself, for document context?
+				doc.selectSentence(new Sentence(textPane.getText())); // TODO get annotation info and create highlight
 			}
 		};
 		analyzeAction.setEnabled(false);
 		JButton btnAnalyze = new JButton(analyzeAction);
 		controlPanel.add(btnAnalyze);
 		
-		controlPanel.add(new JButton(new AbstractAction("Test") {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					PDDocument pdf = doc.getPDDoc();
-					
-					TextLocationStripper ta = new TextLocationStripper(pdf);
-					
-					List<AnnoSentence> sentences = ta.extractSentences();
-					System.out.println("Found " + sentences.size() + " sentences");
-					AnnoSentence sentence = sentences.get(0);
-					System.out.println("First: " + sentence.text);
-					for (Location location : sentence.locations) {
-						List<PDRectangle> rects = new ArrayList<>();
-						rects.add(location.rectangle);
-						doc.addAnnotation(location.pageIndex - 1, rects); // TODO create a single annotation? one per page?
-					}
-					
-					cp.updatePage();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-		}));
-
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.5);
 		frame.getContentPane().add(splitPane, BorderLayout.CENTER);
@@ -222,12 +196,12 @@ public class Window {
 		listScrollPane = new JScrollPane();
 		rightPanel.add(listScrollPane, BorderLayout.CENTER);
 
-		list = new JList<Sentence>();
+		list = new JList<AnnoSentence>();
 		list.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				if (doc != null && !list.isSelectionEmpty()) {
-					Sentence sentence = list.getSelectedValue();
-					textPane.setText(sentence.text());
+					AnnoSentence sentence = list.getSelectedValue();
+					textPane.setText(sentence.text);
 					analyzeAction.setEnabled(true);
 				} else {
 					analyzeAction.setEnabled(false);
