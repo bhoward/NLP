@@ -33,7 +33,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 
 import edu.depauw.janno.AnnoDoc;
-import edu.depauw.janno.PDFTextAnnotator;
+import edu.depauw.janno.AnnoSentence;
+import edu.depauw.janno.Location;
+import edu.depauw.janno.TextLocationStripper;
 import edu.stanford.nlp.simple.Sentence;;
 
 public class Window {
@@ -129,12 +131,19 @@ public class Window {
 		controlPanel.add(new JButton(new AbstractAction("Test") {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					PDFTextAnnotator ta = new PDFTextAnnotator(doc);
-					ta.initialize();
-					ta.highlight("the");
-					
 					PDDocument pdf = doc.getPDDoc();
-					pdf.save(new File("/tmp/test.pdf"));
+					
+					TextLocationStripper ta = new TextLocationStripper(pdf);
+					
+					List<AnnoSentence> sentences = ta.extractSentences();
+					System.out.println("Found " + sentences.size() + " sentences");
+					AnnoSentence sentence = sentences.get(0);
+					System.out.println("First: " + sentence.text);
+					for (Location location : sentence.locations) {
+						List<PDRectangle> rects = new ArrayList<>();
+						rects.add(location.rectangle);
+						doc.addAnnotation(location.pageIndex - 1, rects); // TODO create a single annotation? one per page?
+					}
 					
 					cp.updatePage();
 				} catch (IOException e1) {
