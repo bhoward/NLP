@@ -185,12 +185,12 @@ public class TextLocationStripper extends PDFTextStripper {
 	 */
 	@Override
 	protected void writeLineSeparator() {
-		if (text.charAt(text.length() - 1) == ' ') {
+		if (text.length() > 0 && text.charAt(text.length() - 1) == ' ') {
 			text.deleteCharAt(text.length() - 1);
 			locations.remove(locations.size() - 1);
 		}
 		
-		if (text.charAt(text.length() - 1) == '-') {
+		if (text.length() > 0 && text.charAt(text.length() - 1) == '-') {
 			text.deleteCharAt(text.length() - 1);
 			locations.remove(locations.size() - 1);
 		} else {
