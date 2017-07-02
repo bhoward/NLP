@@ -181,10 +181,15 @@ public class TextLocationStripper extends PDFTextStripper {
 	}
 
 	/**
-	 * Write a space at the end of the line, or remove a previous hyphen.
+	 * Write a space at the end of the line, or remove a previous space or hyphen.
 	 */
 	@Override
 	protected void writeLineSeparator() {
+		if (text.charAt(text.length() - 1) == ' ') {
+			text.deleteCharAt(text.length() - 1);
+			locations.remove(locations.size() - 1);
+		}
+		
 		if (text.charAt(text.length() - 1) == '-') {
 			text.deleteCharAt(text.length() - 1);
 			locations.remove(locations.size() - 1);

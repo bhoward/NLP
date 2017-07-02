@@ -51,13 +51,10 @@ public class AnnoDoc {
 		if (!working) {
 			working = true;
 			new Thread(() -> {
-				System.out.println(sentence);
-
 				App.showAnimatedStatus("Parsing");
 				Tree tree = sentence.parse();
 				App.stopAnimatedStatus();
 				App.showStatus("Ready");
-				System.out.println(tree);
 
 				for (Tree t : tree.subTreeList()) {
 					if (t.value().equals("NP")) {
@@ -72,7 +69,6 @@ public class AnnoDoc {
 							}
 							sb.append(w);
 						}
-						System.out.println(sb);
 					}
 				}
 
