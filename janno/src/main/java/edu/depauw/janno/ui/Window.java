@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -28,9 +30,11 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 
 import edu.depauw.janno.AnnoDoc;
 import edu.depauw.janno.AnnoSentence;
+import edu.depauw.janno.Location;
 import edu.depauw.janno.TextLocationStripper;
 import edu.stanford.nlp.simple.Sentence;;
 
@@ -204,6 +208,22 @@ public class Window {
 					AnnoSentence sentence = list.getSelectedValue();
 					textPane.setText(sentence.text);
 					analyzeAction.setEnabled(true);
+					
+					Location location = sentence.locations.get(0);
+					List<PDRectangle> rects = new ArrayList<>();
+					for (Location loc : sentence.locations) {
+						rects.add(loc.rectangle);
+					}
+					try {
+						doc.addAnnotation(location.pageIndex - 1, rects);
+						doc.getPDDoc().save(new File("/tmp/test.pdf"));
+						// TODO change to only temporarily highlight when selected,
+						// with one call to addAnnotation for each loc.
+					} catch (IOException e1) {
+						// nothing better to do here
+						e1.printStackTrace();
+					}
+					cp.gotoPage(location.pageIndex - 1);
 				} else {
 					analyzeAction.setEnabled(false);
 				}

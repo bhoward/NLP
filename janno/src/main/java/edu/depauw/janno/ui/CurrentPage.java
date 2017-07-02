@@ -42,6 +42,13 @@ public class CurrentPage {
 			updatePage();
 		}
 	}
+	
+	public void gotoPage(int pageIndex) {
+		if (pageIndex >= 0 && pageIndex <= maxIndex) {
+			index = pageIndex;
+			updatePage();
+		}
+	}
 
 	public void zoomIn() {
 		scale *= 1.2;
