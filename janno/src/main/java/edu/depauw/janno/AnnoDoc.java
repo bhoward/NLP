@@ -47,39 +47,36 @@ public class AnnoDoc {
 		return new CurrentPage(pdfDoc, scrollPane);
 	}
 
-	public void selectSentence(final Sentence sentence) {
+	public void selectSentence(Sentence sentence) {
 		if (!working) {
 			working = true;
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					System.out.println(sentence);
+			new Thread(() -> {
+				System.out.println(sentence);
 
-					App.showAnimatedStatus("Parsing");
-					Tree tree = sentence.parse();
-					App.stopAnimatedStatus();
-					App.showStatus("Ready");
-					System.out.println(tree);
+				App.showAnimatedStatus("Parsing");
+				Tree tree = sentence.parse();
+				App.stopAnimatedStatus();
+				App.showStatus("Ready");
+				System.out.println(tree);
 
-					for (Tree t : tree.subTreeList()) {
-						if (t.value().equals("NP")) {
-							List<Word> words = t.yieldWords();
-							StringBuilder sb = new StringBuilder();
-							boolean first = true;
-							for (Word w : words) {
-								if (!first) {
-									sb.append(' ');
-								} else {
-									first = false;
-								}
-								sb.append(w);
+				for (Tree t : tree.subTreeList()) {
+					if (t.value().equals("NP")) {
+						List<Word> words = t.yieldWords();
+						StringBuilder sb = new StringBuilder();
+						boolean first = true;
+						for (Word w : words) {
+							if (!first) {
+								sb.append(' ');
+							} else {
+								first = false;
 							}
-							System.out.println(sb);
+							sb.append(w);
 						}
+						System.out.println(sb);
 					}
-
-					working = false;
 				}
+
+				working = false;
 			}).start();
 		}
 	}

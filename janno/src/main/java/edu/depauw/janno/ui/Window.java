@@ -233,23 +233,20 @@ public class Window {
 		status.setText(message);
 	}
 	
-	public void showAnimatedStatus(final String message) {
+	public void showAnimatedStatus(String message) {
 		stopAnimatedStatus();
 		animSuffix = "";
-		animThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (!Thread.currentThread().isInterrupted()) {
-					if (animSuffix.length() == 10) {
-						animSuffix = "";
-					}
-					animSuffix = animSuffix + ".";
-					showStatus(message + animSuffix);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						return;
-					}
+		animThread = new Thread(() -> {
+			while (!Thread.currentThread().isInterrupted()) {
+				if (animSuffix.length() == 10) {
+					animSuffix = "";
+				}
+				animSuffix = animSuffix + ".";
+				showStatus(message + animSuffix);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return;
 				}
 			}
 		});
