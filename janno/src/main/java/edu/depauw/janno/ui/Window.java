@@ -104,6 +104,7 @@ public class Window {
 						PDDocument pdf = doc.getPDDoc();
 						TextLocationStripper ta = new TextLocationStripper(pdf);
 						list.setModel(ta.extractSentences());
+						textPane.setText("");
 						
 						nextAction.setEnabled(true);
 						previousAction.setEnabled(true);
