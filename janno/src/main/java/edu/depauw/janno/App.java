@@ -12,36 +12,48 @@ public class App {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(() -> {
-			try {
-				window = new Window();
-				window.start();
-			} catch (Exception e) {
-				e.printStackTrace();
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					window = new Window();
+					window.start();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		});
 	}
 
-	public static void showStatus(String message) {
+	public static void showStatus(final String message) {
 		if (window != null) {
-			EventQueue.invokeLater(() -> {
-				window.showStatus(message);
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					window.showStatus(message);
+				}
 			});
 		}
 	}
 
-	public static void showAnimatedStatus(String message) {
+	public static void showAnimatedStatus(final String message) {
 		if (window != null) {
-			EventQueue.invokeLater(() -> {
-				window.showAnimatedStatus(message);
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					window.showAnimatedStatus(message);
+				}
 			});
 		}
 	}
 
 	public static void stopAnimatedStatus() {
 		if (window != null) {
-			EventQueue.invokeLater(() -> {
-				window.stopAnimatedStatus();
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					window.stopAnimatedStatus();
+				}
 			});
 		}
 	}
